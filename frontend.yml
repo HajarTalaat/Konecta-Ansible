@@ -1,0 +1,23 @@
+---
+- name: Configure Frontend Server
+  hosts: frontend-server  # Target the 'frontend-server' group from inventory.ini
+  become: yes             # Run tasks as root (sudo)
+
+  tasks:
+    - name: Check if the OS is Ubuntu
+      ansible.builtin.command: cat /etc/os-release
+      register: os_info
+      changed_when: false
+
+    - name: Install NGINX if OS is Ubuntu
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      when: "'Ubuntu' in os_info.stdout"
+
+    - name: Ensure NGINX is started and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes

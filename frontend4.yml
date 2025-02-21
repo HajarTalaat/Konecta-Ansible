@@ -1,0 +1,21 @@
+- name: Configure Frontend Server
+  hosts: frontend
+  become: yes
+
+  pre_tasks:
+    - name: Get total available memory
+      ansible_facts:
+        gather_subset:
+          - hardware
+
+    - name: Fail if RAM is less than 1GB
+      fail:
+        msg: "Insufficient memory! At least 1GB of RAM is required."
+      when: ansible_facts['memtotal_mb'] < 1024
+
+  tasks:
+    - name: Install NGINX (Only if OS is Ubuntu)
+      apt:
+        name: nginx
+        state: present
+      when: ansible_facts['os_family'] == "Debian"

@@ -1,0 +1,41 @@
+- name: Configure Frontend Server
+  hosts: frontend-server
+  become: yes  # Run tasks as sudo
+
+  tasks:
+    - name: Install NGINX (Only if OS is Ubuntu)
+      apt:
+        name: nginx
+        state: present
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Install essential packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - vim
+        - curl
+        - git
+
+    - name: Deploy a simple HTML file
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Welcome to My Web Page</title>
+          </head>
+          <body>
+              <h1>Hello from Ansible Deployed Web Page!</h1>
+          </body>
+          </html>
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Restart NGINX to Apply Changes
+      systemd:
+        name: nginx
+        state: restarted

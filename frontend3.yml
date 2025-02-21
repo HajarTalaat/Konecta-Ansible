@@ -1,0 +1,29 @@
+---
+- name: Configure Frontend Server
+  hosts: frontend-server
+  become: yes  # Run as root
+
+  tasks:
+    - name: Ensure NGINX is installed
+      apt:
+        name: nginx
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Deploy custom NGINX configuration
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/sites-available/default
+      notify: Restart NGINX
+
+    - name: Ensure NGINX is enabled and running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart NGINX
+      service:
+        name: nginx
+        state: restarted

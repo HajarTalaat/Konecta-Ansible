@@ -1,0 +1,29 @@
+- name: Install Docker and Run Redis Container
+  hosts: docker-server
+  become: yes
+  tasks:
+    - name: Ensure Docker is installed
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull the latest Redis image
+      community.docker.docker_image:
+        name: redis
+        source: pull
+
+    - name: Run Redis container
+      community.docker.docker_container:
+        name: redis
+        image: redis
+        state: started
+        restart_policy: always
+        ports:
+          - "6379:6379"

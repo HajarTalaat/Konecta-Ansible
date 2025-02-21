@@ -1,0 +1,38 @@
+- name: Install Docker on Ubuntu
+  hosts: docker-server
+  become: yes
+  tasks:
+    - name: Remove conflicting containerd packages
+      ansible.builtin.apt:
+        name:
+          - containerd
+          - containerd.io
+        state: absent
+      ignore_errors: yes
+
+    - name: Clean up package manager
+      ansible.builtin.command: apt-get -f install
+      changed_when: false
+
+    - name: Update apt package index
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install Docker (docker.io)
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+
+    - name: Ensure Docker is started and enabled
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Verify Docker installation
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - debug:
+        msg: "Installed Docker version: {{ docker_version.stdout }}"
